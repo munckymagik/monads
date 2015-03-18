@@ -1,0 +1,55 @@
+# encoding: utf-8
+
+require 'monads/rescuer'
+
+module Monads
+  RSpec.describe 'the Rescuer monad' do
+    let(:value) { double }
+    let(:rescuer) { Rescuer.new(value) }
+
+    describe '#value' do
+      it 'retrieves the value from a Rescuer' do
+        expect(rescuer.value).to eq value
+      end
+    end
+
+    describe '.from_value' do
+      it 'wraps a value in a Rescuer' do
+        expect(Rescuer.from_value(value).value).to eq value
+      end
+    end
+
+    describe '#and_then' do
+      context 'when an exception has been caught' do
+        before(:example) do
+          allow(rescuer).to receive(:exception).and_return(double)
+        end
+
+        it 'doesn’t call the block' do
+          expect { |block| rescuer.and_then(&block) }.not_to yield_control
+        end
+
+        it 'returns self' do
+          expect(rescuer.and_then {}).to eq(rescuer)
+        end
+      end
+
+      context 'when no exception has been caught' do
+        it 'calls the block with the value' do
+          value_passed_to_block = nil
+          rescuer.and_then { |value| value_passed_to_block = value; Rescuer.new(double) }
+          expect(value_passed_to_block).to eq(value)
+        end
+
+        it 'returns the block’s result' do
+          result = double
+          expect(rescuer.and_then { |value| Rescuer.new(result) }.value).to eq result
+        end
+
+        it 'raises an error if the block doesn’t return another Rescuer' do
+          expect { rescuer.and_then { double } }.to raise_error(TypeError)
+        end
+      end
+    end
+  end
+end
