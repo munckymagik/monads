@@ -16,8 +16,24 @@ module Monads
     end
 
     describe '.from_value' do
-      it 'wraps a value in a Rescuer' do
-        expect(Rescuer.from_value(value).value).to eq value
+      context 'when a value is passed' do
+        it 'wraps the value in a Rescuer' do
+          expect(Rescuer.from_value(value).value).to eq value
+        end
+      end
+
+      context 'when a block is passed' do
+        it 'evaluates the block and wraps the result in a Rescuer' do
+          expect(Rescuer.from_value { value }.value).to eq value
+        end
+      end
+
+      context 'when a block is passed that throws an exception' do
+        let(:exception) { TestException.new }
+
+        it 'catches the exception and wraps it in a Rescuer' do
+          expect(Rescuer.from_value { raise exception }.exception).to eq exception
+        end
       end
     end
 

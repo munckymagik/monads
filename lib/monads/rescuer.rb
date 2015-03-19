@@ -18,8 +18,16 @@ module Monads
       end
     end
 
-    def self.from_value(value)
-      Rescuer.new(value)
+    def self.from_value(value = nil, &block)
+      if block.nil?
+        Rescuer.new(value)
+      else
+        begin
+          Rescuer.new(block.call)
+        rescue => exc
+          Rescuer.new(nil, exc)
+        end
+      end
     end
   end
 end
