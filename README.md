@@ -96,3 +96,29 @@ An `Eventually` object contains a value that will eventually be available, perha
 => #<Thread run>
 HELLO WORLD
 ```
+
+## `Rescuer`
+
+A `Rescuer` object wraps a block or (a value) that may either raise an exception or return a value.
+
+```irb
+>> require 'monads/rescuer'
+=> false
+
+>> include Monads
+=> Object
+
+>> x = Rescuer.from_value 1
+=> #<struct Monads::Rescuer value=1, exception=nil>
+
+>> y = Rescuer.from_value 0
+=> #<struct Monads::Rescuer value=0, exception=nil>
+
+>> result = x.and_then { |xx| y.within { |yy| xx/yy } }
+=> #<struct Monads::Rescuer value=nil, exception=#<ZeroDivisionError: divided by 0>>
+```
+
+```irb
+> Rescuer.from_value { File.open('doesnt_exist.txt', 'r') }.within { |input| input.read }
+=> #<struct Monads::Rescuer value=nil, exception=#<Errno::ENOENT: No such file or directory @ rb_sysopen - doesnt_exist.txt>>
+```
