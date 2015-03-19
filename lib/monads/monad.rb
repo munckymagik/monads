@@ -1,4 +1,6 @@
 module Monads
+  class MonadicResultTypeError < TypeError; end
+
   module Monad
     def within(&block)
       and_then do |value|
@@ -20,7 +22,7 @@ module Monads
       ->(*a, &b) do
         block.call(*a, &b).tap do |result|
           unless result.is_a?(acceptable_result_type)
-            raise TypeError, "block must return #{acceptable_result_type.name}"
+            raise MonadicResultTypeError, "block must return #{acceptable_result_type.name}"
           end
         end
       end

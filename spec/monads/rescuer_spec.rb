@@ -3,6 +3,8 @@
 require 'monads/rescuer'
 
 module Monads
+  class TestException < StandardError; end
+
   RSpec.describe 'the Rescuer monad' do
     let(:value) { double }
     let(:rescuer) { Rescuer.new(value) }
@@ -48,6 +50,15 @@ module Monads
 
         it 'raises an error if the block doesn’t return another Rescuer' do
           expect { rescuer.and_then { double } }.to raise_error(TypeError)
+        end
+      end
+
+      context 'when the block throws an exception' do
+        let(:exception) { TestException.new }
+
+        it 'returns a new Rescuer that wraps the exception thrown' do
+          result = rescuer.and_then { |value| raise exception }
+          expect(result.exception).to be(exception)
         end
       end
     end

@@ -5,10 +5,14 @@ module Monads
     include Monad
 
     def and_then(&block)
-      block = ensure_monadic_result(&block)
-
       if exception.nil?
-        block.call(value)
+        begin
+          block = ensure_monadic_result(&block)
+          block.call(value)
+        rescue => exc
+          raise if exc.is_a? MonadicResultTypeError
+          Rescuer.new(nil, exc)
+        end
       else
         self
       end
