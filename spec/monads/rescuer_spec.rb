@@ -78,5 +78,41 @@ module Monads
         end
       end
     end
+
+    describe '#within' do
+      context 'when an exception has been caught' do
+        before(:example) do
+          allow(rescuer).to receive(:exception).and_return(double)
+        end
+
+        it 'doesn’t call the block' do
+          expect { |block| rescuer.within(&block) }.not_to yield_control
+        end
+
+        it 'returns self' do
+          expect(rescuer.within {}).to eq(rescuer)
+        end
+      end
+
+      context 'when no exception has been caught' do
+        it 'calls the block with the value' do
+          expect { |block| rescuer.within(&block) }.to yield_with_args(value)
+        end
+
+        it 'returns the block’s result wrapped in a Rescuer' do
+          result = double
+          expect(rescuer.within { |value| result }.value).to eq result
+        end
+      end
+
+      context 'when the block throws an exception' do
+        let(:exception) { TestException.new }
+
+        it 'returns a new Rescuer that wraps the exception thrown' do
+          result = rescuer.within { |value| raise exception }
+          expect(result.exception).to be(exception)
+        end
+      end
+    end
   end
 end
